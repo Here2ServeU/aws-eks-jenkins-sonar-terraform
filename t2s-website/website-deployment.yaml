@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: t2s-website
+  labels:
+    app: t2s-website
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: t2s-website
+  template:
+    metadata:
+      labels:
+        app: t2s-website
+    spec:
+      containers:
+      - name: t2s-website
+        image: <your-repo>/t2s-website:latest  # Replace with your Docker image repo
+        ports:
+        - containerPort: 80
