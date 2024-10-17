@@ -1,10 +1,10 @@
-## Tools to Install:
+#### Tools to Install:
 * AWS CLI: To install and configure AWS CLI, go to https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 * EKSCTL: To install EKSCTL, go to https://eksctl.io/installation/ 
 * KUBECTL: To install KUBECTL, go to https://kubernetes.io/docs/tasks/tools/
 * HELM: To install Helm, go to https://helm.sh/docs/intro/install/ 
 
-# Prerequisites
+#### Prerequisites
 # Install AWS CLI
 curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
 sudo installer -pkg AWSCLIV2.pkg -target /
@@ -12,28 +12,28 @@ sudo installer -pkg AWSCLIV2.pkg -target /
 brew tap weaveworks/tap
 brew install weaveworks/tap/eksctl
 
-# Step 1: Create EKS Cluster
+#### Step 1: Create EKS Cluster
 Use Terraform configuration files to do it. 
 * cd eks-cluster
 * Change variables on the terraform.tfvars file
 **Run the following terraform commands**
-terraform init 
-terraform plan 
-terraform apply
+* terraform init 
+* terraform plan 
+* terraform apply
 
-# Step 2: Update kubeconfig
+#### Step 2: Update kubeconfig
 * aws eks --region $(terraform output -raw t2s_services_region) update-kubeconfig \
-    --name $(terraform output -raw t2s_services_cluster_name)
+--name $(terraform output -raw t2s_services_cluster_name)
 
-# Step 3: Create Namespace and name it jenkins
+#### Step 3: Create Namespace and name it jenkins
 * kubectl get ns             # To verify
 * kubectl create ns jenkins  # To create a namespace
 
-# Step 4: Installing Helm on Local Machine
+#### Step 4: Installing Helm on Local Machine
 * brew install helm 
 * helm version # To verify
 
-# Step 5: Install and Configure Jenkins for CI/CD
+#### Step 5: Install and Configure Jenkins for CI/CD
 * helm repo add jenkins https://charts.jenkins.io
 * helm repo update
 * helm install jenkins jenkins/jenkins --set controller.serviceType=LoadBalancer
@@ -44,11 +44,11 @@ terraform apply
 **Verify the Worker Nodes**
 * kubectl get nodes
 
-# Step 6: Access Jenkins UI
+#### Step 6: Access Jenkins UI
 **Get the Jenkins admin password:**
 * kubectl exec --namespace default -it svc/jenkins -c jenkins -- /bin/cat /run/secrets/additional/chart-admin-password && echo
 
-## Get the Load Balancer URL for Jenkins
+**Get the Load Balancer URL for Jenkins**
 * kubectl get svc --namespace default -w jenkins
 
 *** Something like this: a8cc903b184cb4e908a01a07f7748594-416424995.us-east-1.elb.amazonaws.com. Paste it on the browser: a8cc903b184cb4e908a01a07f7748594-416424995.us-east-1.elb.amazonaws.com:8080.***
@@ -56,7 +56,7 @@ terraform apply
 ***For Username: Admin; For Password: (Paste what you generated using this command kubectl exec --name space ...., above)***
 
 
-# Step 7: Install Plugins
+#### Step 7: Install Plugins
 **Docker Pipeline**
 **GitHub Plugin**
 **Kubernetes Plugin**
@@ -67,49 +67,14 @@ terraform apply
 **SonarQube**
 **Trivy**
 
-# Step 8: Configure the Plugins
+#### Step 8: Configure the Plugins
 **Dashboard => Manage Jenkins => Tools**
 
-# Set up Jenkins Pipeline
-**Create a file and name it Jenkinsfile**
+**Set up Jenkins Pipeline**
+***Create a file and name it Jenkinsfile***
 * Add this content (or use the attached file, Jenkinsfile)
-pipeline {
-    agent any
-    environment {
-        ECR_REPO_URI = '123456789012.dkr.ecr.us-east-1.amazonaws.com/t2s-services-repo'
-    }
-    stages {
-        stage('Build') {
-            steps {
-                script {
-                    docker.build("$ECR_REPO_URI:$BUILD_NUMBER")
-                }
-            }
-        }
-        stage('Push to ECR') {
-            steps {
-                script {
-                    withAWS(region: 'us-east-1') {
-                        sh "aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REPO_URI"
-                        docker.image("$ECR_REPO_URI:$BUILD_NUMBER").push()
-                    }
-                }
-            }
-        }
-        stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                    kubernetesDeploy(
-                        configs: 'k8s/deployment.yaml',
-                        kubeconfigId: 'kubeconfig'
-                    )
-                }
-            }
-        }
-    }
-}
 
-# Step 9: Taint each node
+#### Step 9: Taint each node
 **Taint nodes for SonarQube**
 * kubectl taint nodes <node-name-1> tool=sonarqube:NoSchedule
 
@@ -122,7 +87,7 @@ pipeline {
 **Taint nodes for Prometheus**
 * kubectl taint nodes <node-name-4> tool=prometheus:NoSchedule
 
-# Step 10: Install SonarQube with Helm and on Its Dedicated Node
+#### Step 10: Install SonarQube with Helm and on Its Dedicated Node
 * helm repo add sonarqube https://SonarSource.github.io/helm-chart-sonarqube
 * helm repo update
 * helm install sonarqube sonarqube/sonarqube \
@@ -136,7 +101,7 @@ pipeline {
     --set persistence.storageClass="gp2" \
     --set service.type=LoadBalancer
 
-# Step 11: Install Trivy with Helm and on Its Dedicated Node
+#### Step 11: Install Trivy with Helm and on Its Dedicated Node
 * helm repo add aqua https://aquasecurity.github.io/helm-charts
 * helm repo update
 * helm install trivy aqua/trivy-operator \
@@ -148,7 +113,7 @@ pipeline {
     --set tolerations[0].value=trivy \
     --set tolerations[0].effect=NoSchedule
 
-# Step 12: Install Prometheus with Helm and on Its Dedicated Node
+#### Step 12: Install Prometheus with Helm and on Its Dedicated Node
 * helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 * helm repo update
 * helm install prometheus prometheus-community/prometheus \
@@ -160,7 +125,7 @@ pipeline {
     --set tolerations[0].value=prometheus \
     --set tolerations[0].effect=NoSchedule
 
-# Step 13: Install Grafana with Helm and on Its Dedicated Node
+#### Step 13: Install Grafana with Helm and on Its Dedicated Node
 * helm repo add grafana https://grafana.github.io/helm-charts
 * helm repo update
 * helm install grafana grafana/grafana \
@@ -173,18 +138,18 @@ pipeline {
     --set persistence.storageClass="gp2" \
     --set service.type=LoadBalancer
 
-# Step 14: Verify Deployments
+#### Step 14: Verify Deployments
 * kubectl get pods -o wide -n sonarqube
 * kubectl get pods -o wide -n trivy-system
 * kubectl get pods -o wide -n monitoring
 
-# Step 15: Access the Tools
+#### Step 15: Access the Tools
 **These commands will provide the external IP addresses of SonarQube, Trivy, Prometheus, and Grafana.**
 * kubectl get svc -n sonarqube
 * kubectl get svc -n trivy-system
 * kubectl get svc -n monitoring
 
-# Step 16: Create and Deploy a Website
+#### Step 16: Create and Deploy a Website
 * mkdir t2s-website
 * cd t2s-website
 * touch Dockerfile
