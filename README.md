@@ -83,7 +83,7 @@ terraform apply
     --set service.type=LoadBalancer
 
 ***Deploy Elasticsearch***
-* helm install elasticsearch elastic/elasticsearch \
+<!-- * helm install elasticsearch elastic/elasticsearch \
     --namespace monitor \
     --set persistence.storageClass="gp2" \
     --set service.type=LoadBalancer
@@ -94,7 +94,7 @@ terraform apply
 
 * helm install logstash elastic/logstash \
     --namespace monitor \
-    --set service.type=LoadBalancer
+    --set service.type=LoadBalancer -->
 
 ***Deploy Trivy in its own namespace***
 * helm install trivy aqua/trivy-operator \
