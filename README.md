@@ -3,9 +3,9 @@
 * This README file provides a step-by-step guide for deploying and managing a comprehensive infrastructure on AWS using Kubernetes (EKS) and Helm. 
 * This guide aims to help you install and configure critical tools such as SonarQube, Prometheus, Grafana, Trivy, and Jenkins and deploy a sample website using Docker and ECR. 
 * The instructions will walk you through creating an EKS cluster, setting up namespaces for each service, installing monitoring tools, deploying CI/CD pipelines, and scaling and cleaning up your infrastructure.
-* This guide aims to ensure that you have a highly available, scalable, resilient, and cost-efficient infrastructure. It covers the installation of key tools and the process of deploying a fully functional web application.
+* This guide ensures a highly available, scalable, resilient, and cost-efficient infrastructure. It covers the installation of critical tools and the process of deploying a fully functional web application.
 
-Let’s get started by installing the necessary tools and setting up the EKS cluster!
+Let’s start by installing the necessary tools and setting up the EKS cluster!
 
 #### Tools to Install:
 * AWS CLI: To install and configure AWS CLI, go to https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
@@ -73,7 +73,7 @@ helm repo add jenkins https://charts.jenkins.io
     --set service.type=LoadBalancer
 
 ***Deploy SonarQube in its own namespace***
-helm install prometheus prometheus-community/prometheus \
+* helm install prometheus prometheus-community/prometheus \
     --namespace monitor \
     --create-namespace \
     --set nodeSelector.tool=prometheus \
@@ -101,21 +101,21 @@ helm install prometheus prometheus-community/prometheus \
     --set service.type=LoadBalancer
 
 ****Deploy Elasticsearch****
-helm install elasticsearch elastic/elasticsearch \
+* helm install elasticsearch elastic/elasticsearch \
     --namespace monitor \
     --set persistence.storageClass="gp2" \
     --set service.type=LoadBalancer
 
-helm install kibana elastic/kibana \
+* helm install kibana elastic/kibana \
     --namespace monitor \
     --set service.type=LoadBalancer
 
-helm install logstash elastic/logstash \
+* helm install logstash elastic/logstash \
     --namespace monitor \
     --set service.type=LoadBalancer
 
 ***Deploy Trivy in its own namespace***
-helm install trivy aqua/trivy-operator \
+* helm install trivy aqua/trivy-operator \
     --namespace trivy-system \
     --create-namespace \
     --set nodeSelector.tool=trivy \
