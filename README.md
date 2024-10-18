@@ -23,19 +23,9 @@ terraform plan
 terraform apply
 
 ### Step 2: Update kubeconfig
-* Run the command in the "eks-cluster" directory.
 * aws eks --region $(terraform output -raw t2s_services_region) update-kubeconfig --name $(terraform output -raw t2s_services_cluster_name)
 
-### Step 3: Create Namespace and name it jenkins
-* kubectl get ns             # To verify
-* kubectl create ns jenkins  # To create a namespace
-
-### Step 4: Installing Helm on Local Machine
-* brew install helm 
-* helm version # To verify
-
-### Step 5: Deploy SonarQube, Prometheus, Trivy, Grafana, and ELK
-***Add Helm Repositories***
+### Step 3: Deploy SonarQube, Prometheus, Trivy, Grafana, and ELK
 ***Add SonarQube Helm repo***
 * helm repo add sonarqube https://SonarSource.github.io/helm-chart-sonarqube
 
@@ -68,22 +58,22 @@ terraform apply
 * helm install prometheus prometheus-community/prometheus \
     --namespace monitor \
     --create-namespace \
-    --set nodeSelector.tool=prometheus \
-    --set tolerations[0].key=tool \
-    --set tolerations[0].operator=Equal \
-    --set tolerations[0].value=prometheus \
-    --set tolerations[0].effect=NoSchedule \
-    --set server.service.type=LoadBalancer
+    --set "nodeSelector.tool=prometheus" \
+    --set "tolerations[0].key=tool" \
+    --set "tolerations[0].operator=Equal" \
+    --set "tolerations[0].value=prometheus" \
+    --set "tolerations[0].effect=NoSchedule" \
+    --set "server.service.type=LoadBalancer"
 
 ***Deploy Prometheus, Grafana, and ELK in the monitor Namespace***
 * helm install prometheus prometheus-community/prometheus \
     --namespace monitor \
     --create-namespace \
     --set nodeSelector.tool=prometheus \
-    --set tolerations[0].key=tool \
-    --set tolerations[0].operator=Equal \
-    --set tolerations[0].value=prometheus \
-    --set tolerations[0].effect=NoSchedule \
+    --set tolerations\[0\].key=tool \
+    --set tolerations\[0\].operator=Equal \
+    --set tolerations\[0\].value=prometheus \
+    --set tolerations\[0\].effect=NoSchedule \
     --set server.service.type=LoadBalancer
 
 * helm install grafana grafana/grafana \
@@ -126,7 +116,7 @@ terraform apply
      --set controller.jenkinsAdminUser=admin \
      --set controller.jenkinsAdminPassword=admin123
 
-### Step 6: Install SonarQube with Helm and on Its Dedicated Node
+### Step 4: Install SonarQube with Helm and on Its Dedicated Node
 * helm repo add sonarqube https://SonarSource.github.io/helm-chart-sonarqube
 * helm repo update
 * helm install sonarqube sonarqube/sonarqube \
@@ -140,7 +130,7 @@ terraform apply
     --set persistence.storageClass="gp2" \
     --set service.type=LoadBalancer
 
-### Step 7: Install Trivy with Helm and on Its Dedicated Node
+### Step 5: Install Trivy with Helm and on Its Dedicated Node
 * helm repo add aqua https://aquasecurity.github.io/helm-charts
 * helm repo update
 * helm install trivy aqua/trivy-operator \
@@ -152,7 +142,7 @@ terraform apply
     --set tolerations\[0\].value=trivy \
     --set tolerations\[0\].effect=NoSchedule
 
-### Step 8: Install Prometheus with Helm and on Its Dedicated Node
+### Step 6: Install Prometheus with Helm and on Its Dedicated Node
 * helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 * helm repo update
 * helm install prometheus prometheus-community/prometheus \
@@ -164,7 +154,7 @@ terraform apply
     --set tolerations[0].value=prometheus \
     --set tolerations[0].effect=NoSchedule
 
-### Step 9: Install Grafana with Helm and on Its Dedicated Node
+### Step 7: Install Grafana with Helm and on Its Dedicated Node
 * helm repo add grafana https://grafana.github.io/helm-charts
 * helm repo update
 * helm install grafana grafana/grafana \
@@ -176,13 +166,13 @@ terraform apply
     --set tolerations[0].value=grafana \
     --set tolerations[0].effect=NoSchedule
 
-### Step 10: Verify Deployments
+### Step 8: Verify Deployments
 * kubectl get pods -o wide -n sonarqube
 * kubectl get pods -o wide -n trivy-system
 * kubectl get pods -o wide -n monitoring
 * kubectl get pods -o wide -n grafana
 
-### Step 11: Access the Services
+### Step 9: Access the Services
 ***You will find external IP addresses under EXTERNAL-IP for each service. Open them in your browser.***
 **SonarQube.**
 * kubectl get svc -n sonarqube
@@ -209,7 +199,7 @@ kubectl get svc -n jenkins
 * Username: admin
 * Password: admin123
 
-### Step 12: Create and Deploy a Website as Image to ECR
+### Step 10: Create and Deploy a Website as Image to ECR
 * mkdir t2s-website
 * cd t2s-website
 * touch Dockerfile
@@ -220,7 +210,7 @@ kubectl get svc -n jenkins
 * docker tag dev/t2s-services:latest <AWS_Account_ID>.dkr.ecr.us-east-1.amazonaws.com/dev/t2s-services:latest
 * docker push <AWS_Account_ID>.dkr.ecr.us-east-1.amazonaws.com/dev/t2s-services:latest
 
-### Step 13: Create Kubernetes Deployment and Service
+### Step 11: Create Kubernetes Deployment and Service
 * touch website-deployment.yaml
 ***Find content in the "t2s-website" directory***
 
@@ -241,10 +231,10 @@ kubectl get svc
 ***Use the external IP from the Load Balancer. Open a browser and visit the IP to see your website. The message displayed will be:***
 * "Hello from T2S. Congratulations for having set up a complete infrastructure that is scalable, highly available, resilient, accessible, and cost-efficient. Great job!"
 
-### Step 14: Scale Up the Deployment
+### Step 12: Scale Up the Deployment
 * kubectl scale deployment t2s-website --replicas=3
 
-### Step 15: Clean Up
+### Step 13: Clean Up
 ***Run the terraform destroy command***
 ***In case you get an error message, go to the console to manually delete the Load Balancers.*** 
 
