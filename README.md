@@ -1,11 +1,11 @@
 ## Step-by-Step Guide To Deploy and Manage Infrastructure on AWS Using Kubernetes and Helm
 
 * This README file provides a step-by-step guide for deploying and managing a comprehensive infrastructure on AWS using Kubernetes (EKS) and Helm. 
-* This guide aims to help you install and configure critical tools such as SonarQube, Prometheus, Grafana, Trivy, and Jenkins and deploy a sample website using Docker and ECR. 
-* The instructions will walk you through creating an EKS cluster, setting up namespaces for each service, installing monitoring tools, deploying CI/CD pipelines, and scaling and cleaning up your infrastructure.
-* This guide aims to ensure that you have a highly available, scalable, resilient, and cost-efficient infrastructure. It covers the installation of key tools and the deployment of a fully functional web application.
+* The goal of this guide is to help you install and configure critical tools such as SonarQube, Prometheus, Grafana, Trivy, and Jenkins, as well as deploy a sample website using Docker and ECR. 
+* The instructions will walk you through creating an EKS cluster, setting up namespaces for each service, installing monitoring tools, deploying CI/CD pipelines, and finally scaling and cleaning up your infrastructure.
+* This guide aims to ensure that you have a highly available, scalable, resilient, and cost-efficient infrastructure, covering the installation of key tools and the process of deploying a fully functional web application.
 
-**Let’s start by installing the necessary tools and setting up the EKS cluster!**
+Let’s get started by installing the necessary tools and setting up the EKS cluster!
 
 ### Tools to Install:
 * AWS CLI: To install and configure AWS CLI, go to https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
@@ -36,25 +36,25 @@ terraform apply
 
 ### Step 5: Deploy SonarQube, Prometheus, Trivy, Grafana, and ELK
 ***Add Helm Repositories***
-**Add SonarQube Helm repo**
+***Add SonarQube Helm repo***
 * helm repo add sonarqube https://SonarSource.github.io/helm-chart-sonarqube
 
-**Add Prometheus Helm repo**
+***Add Prometheus Helm repo***
 * helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 
-**Add Grafana Helm repo**
+***Add Grafana Helm repo***
 * helm repo add grafana https://grafana.github.io/helm-charts
 
-**Add Aqua Security Helm repo for Trivy**
+***Add Aqua Security Helm repo for Trivy***
 * helm repo add aqua https://aquasecurity.github.io/helm-charts
 
-**Add ELK Stack Helm repo (ElasticSearch, Logstash, Kibana)**
+***Add ELK Stack Helm repo (ElasticSearch, Logstash, Kibana)***
 * helm repo add elastic https://helm.elastic.co
 
-**Add the Jenkins Helm repository**
-helm repo add jenkins https://charts.jenkins.io
+***Add the Jenkins Helm repository***
+* helm repo add jenkins https://charts.jenkins.io
 
-**Update all Helm repositories**
+***Update all Helm repositories***
 * helm repo update
 
 ***Deploy SonarQube in its own namespace***
@@ -92,22 +92,22 @@ helm repo add jenkins https://charts.jenkins.io
     --set adminPassword='admin' \
     --set service.type=LoadBalancer
 
-****Deploy Elasticsearch****
-helm install elasticsearch elastic/elasticsearch \
+***Deploy Elasticsearch***
+* helm install elasticsearch elastic/elasticsearch \
     --namespace monitor \
     --set persistence.storageClass="gp2" \
     --set service.type=LoadBalancer
 
-helm install kibana elastic/kibana \
+* helm install kibana elastic/kibana \
     --namespace monitor \
     --set service.type=LoadBalancer
 
-helm install logstash elastic/logstash \
+* helm install logstash elastic/logstash \
     --namespace monitor \
     --set service.type=LoadBalancer
 
 ***Deploy Trivy in its own namespace***
-helm install trivy aqua/trivy-operator \
+* helm install trivy aqua/trivy-operator \
     --namespace trivy-system \
     --create-namespace \
     --set nodeSelector.tool=trivy \
@@ -116,7 +116,7 @@ helm install trivy aqua/trivy-operator \
     --set tolerations[0].value=trivy \
     --set tolerations[0].effect=NoSchedule
 
-**Create a Namespace for Jenkins**
+***Create a Namespace for Jenkins***
 * kubectl create namespace jenkins
 
 ***Install Jenkins Using Helm***
