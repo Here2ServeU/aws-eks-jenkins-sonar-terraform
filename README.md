@@ -24,8 +24,7 @@ terraform apply
 
 ### Step 2: Update kubeconfig
 * Run the command in the "eks-cluster" directory.
-* aws eks --region $(terraform output -raw t2s_services_region) update-kubeconfig \
---name $(terraform output -raw t2s_services_cluster_name)
+* aws eks --region $(terraform output -raw t2s_services_region) update-kubeconfig --name $(terraform output -raw t2s_services_cluster_name)
 
 ### Step 3: Create Namespace and name it jenkins
 * kubectl get ns             # To verify
