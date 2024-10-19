@@ -18,9 +18,9 @@ Use Terraform configuration files to do it.
 * cd eks-cluster
 * Change variables on the terraform.tfvars file
 **Run the following terraform commands**
-terraform init 
-terraform plan 
-terraform apply
+* terraform init 
+* terraform plan 
+* terraform apply
 
 ### Step 2: Update kubeconfig
 * aws eks --region $(terraform output -raw t2s_services_region) update-kubeconfig --name $(terraform output -raw t2s_services_cluster_name)
