@@ -25,7 +25,7 @@ Use Terraform configuration files to do it.
 ### Step 2: Update kubeconfig
 * aws eks --region $(terraform output -raw t2s_services_region) update-kubeconfig --name $(terraform output -raw t2s_services_cluster_name)
 
-### Step 3: Deploy SonarQube, Prometheus, Trivy, Grafana, and ELK
+### Step 3: Deploy SonarQube, Prometheus, Trivy, Grafana,
 ***Add SonarQube Helm repo***
 * helm repo add sonarqube https://SonarSource.github.io/helm-chart-sonarqube
 
