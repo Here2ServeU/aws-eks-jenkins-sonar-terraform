@@ -25,66 +25,116 @@ Use Terraform configuration files to do it.
 ### Step 2: Update kubeconfig
 * aws eks --region $(terraform output -raw t2s_services_region) update-kubeconfig --name $(terraform output -raw t2s_services_cluster_name)
 
-### Step 3: Deploy SonarQube, Prometheus, Trivy, Grafana,
-***Add SonarQube Helm repo***
-* helm repo add sonarqube https://SonarSource.github.io/helm-chart-sonarqube
+# Step 3: Create Namespace and name it jenkins
+* kubectl get ns             # To verify
+* kubectl create ns jenkins  # To create a namespace
 
-***Add Prometheus Helm repo***
-* helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+# Step 4: Installing Helm on Local Machine
+* brew install helm 
+* helm version # To verify
 
-***Add Grafana Helm repo***
-* helm repo add grafana https://grafana.github.io/helm-charts
-
-***Add Aqua Security Helm repo for Trivy***
-* helm repo add aqua https://aquasecurity.github.io/helm-charts
-
-***Add ELK Stack Helm repo (ElasticSearch, Logstash, Kibana)***
-* helm repo add elastic https://helm.elastic.co
-
-***Add the Jenkins Helm repository***
+# Step 5: Install and Configure Jenkins for CI/CD
 * helm repo add jenkins https://charts.jenkins.io
+* helm repo update
+* helm install jenkins jenkins/jenkins --set controller.serviceType=LoadBalancer
 
-***Update all Helm repositories***
+**Get the Cluster Info**
+* kubectl cluster-info
+
+**Verify the Worker Nodes**
+* kubectl get nodes
+
+# Step 6: Access Jenkins UI
+**Get the Jenkins admin password:**
+* kubectl exec --namespace default -it svc/jenkins -c jenkins -- /bin/cat /run/secrets/additional/chart-admin-password && echo
+
+## Get the Load Balancer URL for Jenkins
+* kubectl get svc --namespace default -w jenkins
+
+*** Something like this: a8cc903b184cb4e908a01a07f7748594-416424995.us-east-1.elb.amazonaws.com. Paste it on the browser: a8cc903b184cb4e908a01a07f7748594-416424995.us-east-1.elb.amazonaws.com:8080.***
+
+***For Username: Admin; For Password: (Paste what you generated using this command kubectl exec --name space ...., above)***
+
+
+# Step 7: Install Plugins
+**Docker Pipeline**
+**GitHub Plugin**
+**Kubernetes Plugin**
+**AWS Credentials Plugin**
+**Pipeline Plugin**
+**AWS Credentials**
+**GitLab Crendentials**
+**SonarQube**
+**Trivy**
+
+# Step 8: Configure the Plugins
+**Dashboard => Manage Jenkins => Tools**
+
+# Set up Jenkins Pipeline
+**Create a file and name it Jenkinsfile**
+* Add this content (or use the attached file, Jenkinsfile)
+pipeline {
+    agent any
+    environment {
+        ECR_REPO_URI = '123456789012.dkr.ecr.us-east-1.amazonaws.com/t2s-services-repo'
+    }
+    stages {
+        stage('Build') {
+            steps {
+                script {
+                    docker.build("$ECR_REPO_URI:$BUILD_NUMBER")
+                }
+            }
+        }
+        stage('Push to ECR') {
+            steps {
+                script {
+                    withAWS(region: 'us-east-1') {
+                        sh "aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REPO_URI"
+                        docker.image("$ECR_REPO_URI:$BUILD_NUMBER").push()
+                    }
+                }
+            }
+        }
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    kubernetesDeploy(
+                        configs: 'k8s/deployment.yaml',
+                        kubeconfigId: 'kubeconfig'
+                    )
+                }
+            }
+        }
+    }
+}
+
+# Step 9: Taint each node
+**Taint nodes for SonarQube**
+* kubectl taint nodes <node-name-1> tool=sonarqube:NoSchedule
+
+**Taint nodes for Trivy**
+* kubectl taint nodes <node-name-2> tool=trivy:NoSchedule
+
+**Taint nodes for Grafana**
+* kubectl taint nodes <node-name-3> tool=grafana:NoSchedule
+
+**Taint nodes for Prometheus**
+* kubectl taint nodes <node-name-4> tool=prometheus:NoSchedule
+
+# Step 10: Install SonarQube with Helm and on Its Dedicated Node
+* helm repo add sonarqube https://SonarSource.github.io/helm-chart-sonarqube
 * helm repo update
 
 ***Deploy SonarQube in its own namespace***
 * helm install sonarqube sonarqube/sonarqube \
     --namespace sonarqube \
     --create-namespace \
-    --set persistence.storageClass="gp2" \
-    --set service.type=LoadBalancer
-
-***Deploy SonarQube in its own namespace***
-* helm install prometheus prometheus-community/prometheus \
-    --namespace monitor \
-    --create-namespace \
-    --set "nodeSelector.tool=prometheus" \
-    --set "tolerations[0].key=tool" \
-    --set "tolerations[0].operator=Equal" \
-    --set "tolerations[0].value=prometheus" \
-    --set "tolerations[0].effect=NoSchedule" \
-    --set "server.service.type=LoadBalancer"
-
-***Deploy Prometheus, Grafana, and ELK in the monitor Namespace***
-* helm install prometheus prometheus-community/prometheus \
-    --namespace monitor \
-    --create-namespace \
-    --set nodeSelector.tool=prometheus \
-    --set tolerations\[0\].key=tool \
-    --set tolerations\[0\].operator=Equal \
-    --set tolerations\[0\].value=prometheus \
-    --set tolerations\[0\].effect=NoSchedule \
-    --set server.service.type=LoadBalancer
-
-* helm install grafana grafana/grafana \
-    --namespace monitor \
-    --set persistence.storageClassName="gp2" \
-    --set adminPassword='admin' \
-    --set service.type=LoadBalancer
-
-***Deploy Elasticsearch***
-<!-- * helm install elasticsearch elastic/elasticsearch \
-    --namespace monitor \
+    --set nodeSelector.tool=sonarqube \
+    --set tolerations[0].key=tool \
+    --set tolerations[0].operator=Equal \
+    --set tolerations[0].value=sonarqube \
+    --set tolerations[0].effect=NoSchedule \
     --set persistence.storageClass="gp2" \
     --set service.type=LoadBalancer
 
