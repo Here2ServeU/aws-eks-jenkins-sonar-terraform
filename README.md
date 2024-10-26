@@ -85,8 +85,8 @@ Let’s start by installing the necessary tools and setting up the EKS cluster!
 * helm install jenkins jenkins/jenkins \
      --namespace jenkins \
      --set controller.serviceType=LoadBalancer \
-     --set controller.jenkinsAdminUser=admin \
-     --set controller.jenkinsAdminPassword=admin123
+     --set controller.jenkinsAdminUser=Admin \
+     --set controller.jenkinsAdminPassword=Admin123
 
 ### Step 5: Verify Deployments
 ***Ensure that all your deployments are running:***
@@ -103,6 +103,7 @@ Let’s start by installing the necessary tools and setting up the EKS cluster!
 * kubectl get svc -n monitor          # Access Prometheus, and Grafana
 * kubectl get svc -n trivy-system     # Access Trivy
 * kubectl get svc -n jenkins          # Access Jenkins
+* kubectl get secret --namespace jenkins jenkins -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode # To get the password in case "Admin123" does not work. 
 
 ### Step 7: Deploy a Website using Docker and ECR
 **Create a directory and Dockerfile for the website:**
